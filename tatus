@@ -1,0 +1,16 @@
+warning: in the working copy of 'src/integrations/supabase/client.ts', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/src/integrations/supabase/client.ts b/src/integrations/supabase/client.ts[m
+[1mindex 22fc738..d3dfda3 100644[m
+[1m--- a/src/integrations/supabase/client.ts[m
+[1m+++ b/src/integrations/supabase/client.ts[m
+[36m@@ -2,8 +2,8 @@[m
+ import { createClient } from '@supabase/supabase-js';[m
+ import type { Database } from './types';[m
+ [m
+[31m-const SUPABASE_URL = "https://whnsljxfognbaheqnqaw.supabase.co";[m
+[31m-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndobnNsanhmb2duYmFoZXFucWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxMTc1NjYsImV4cCI6MjA2OTY5MzU2Nn0.2L459iSOvL9xBVWvRLSF-MoYsKs0TiE6O3HQtM5cvnQ";[m
+[32m+[m[32mconst SUPABASE_URL = "https://lgvntvnqjkcmysokjjkc.supabase.co";[m
+[32m+[m[32mconst SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxndm50dm5xamtjbXlzb2tqamtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NjI0MjksImV4cCI6MjA3MDEzODQyOX0.zIS5hq7bPZmoa5FMgKn-w__ug1iQqhrhqT4wT2Ld0Cc";[m
+ [m
+ // Import the supabase client like this:[m
+ // import { supabase } from "@/integrations/supabase/client";[m

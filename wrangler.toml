@@ -1,0 +1,18 @@
+name = "r2-upload-worker"
+main = "worker/index.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "cirpman-homes-db"
+database_id = "0ccb751e-870c-4431-a15c-51ac5853f4da"
+
+[vars]
+R2_ACCOUNT_ID = "b504159e8022ea6268f9390704f90c2f"
+R2_BUCKET_NAME = "cirpman-homes-files"
+FIREBASE_PROJECT_ID = "cirpman-homes"
+R2_ACCESS_KEY_ID = "1bbd52d2dc986e9de9a8b08a67f0547d"
+R2_SECRET_ACCESS_KEY = "1df4efcb6b7d4b34ffb074a0a484261d90a3596db25b2e3f77be39c95b3ef455"
+R2_PUBLIC_URL = "https://cirpman-homes-files.b504159e8022ea6268f9390704f90c2f.r2.cloudflarestorage.com"
