@@ -81,7 +81,10 @@ const handleRequest = async (request, env) => {
 
   const adminOnly = async () => {
     const user = await auth();
-    if (user?.role !== 'admin') return null;
+    if (!user) return null;
+    // Optional: Re-verify from DB for real-time role changes
+    const profile = await env.DB.prepare("SELECT role FROM profiles WHERE id = ?").bind(user.userId).first();
+    if (profile?.role !== 'admin') return null;
     return user;
   };
 
@@ -373,12 +376,30 @@ const handleRequest = async (request, env) => {
     }
 
     // --- File Utils ---
-    if (path === "/get-upload-url" && method === "POST") {
+    if ((path === "/get-upload-url" || path === "/upload") && method === "POST") {
       const user = await auth();
       if (!user) return jsonResp({ error: "Unauthorized" }, 401);
-      const { fileName, fileType } = await request.json();
+
+      // Support both old and new request formats
+      let fileName, fileType;
+      try {
+        const body = await request.json();
+        fileName = body.fileName || body.file || `upload-${Date.now()}`;
+        fileType = body.fileType || body.type || "application/octet-stream";
+      } catch (e) {
+        fileName = `upload-${Date.now()}`;
+        fileType = "application/octet-stream";
+      }
+
       const key = `uploads/${user.userId}/${Date.now()}-${fileName}`;
-      const signedUrl = await getS3PresignedUrl({ bucket: env.R2_BUCKET_NAME, key, accountId: env.R2_ACCOUNT_ID, accessKey: env.R2_ACCESS_KEY_ID, secretKey: env.R2_SECRET_ACCESS_KEY, contentType: fileType });
+      const signedUrl = await getS3PresignedUrl({
+        bucket: env.R2_BUCKET_NAME,
+        key,
+        accountId: env.R2_ACCOUNT_ID,
+        accessKey: env.R2_ACCESS_KEY_ID,
+        secretKey: env.R2_SECRET_ACCESS_KEY,
+        contentType: fileType
+      });
       return jsonResp({ url: signedUrl, key, publicUrl: `${env.R2_PUBLIC_URL}/${key}` });
     }
 
