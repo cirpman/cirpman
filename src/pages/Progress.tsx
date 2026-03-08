@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Clock } from 'lucide-react';
 import { toast } from "sonner";
+import { worker } from '@/lib/worker';
 
 interface ProgressItem {
   id: string;
@@ -27,9 +28,9 @@ const Progress = () => {
   const fetchProgressItems = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/progress');
-      if (!res.ok) throw new Error('Failed to fetch progress items');
-      const data = await res.json();
+      const response = await worker.post('/get-progress-timeline-items', {});
+      if (!response.ok) throw new Error('Failed to fetch progress items');
+      const data = await response.json();
       setProgressItems(Array.isArray(data) ? data : data.progress || []);
     } catch (error: any) {
       toast.error('Failed to fetch progress items: ' + error.message);

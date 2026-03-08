@@ -380,18 +380,32 @@ const handleRequest = async (request, env) => {
       const user = await auth();
       if (!user) return jsonResp({ error: "Unauthorized" }, 401);
 
-      // Support both old and new request formats
-      let fileName, fileType;
+      let fileName, fileType, fileData;
       try {
         const body = await request.json();
-        fileName = body.fileName || body.file || `upload-${Date.now()}`;
-        fileType = body.fileType || body.type || "application/octet-stream";
+        fileName = body.fileName || body.file_name || `upload-${Date.now()}`;
+        fileType = body.fileType || body.type || body.file_type || "application/octet-stream";
+        fileData = body.file; // This might be base64
       } catch (e) {
         fileName = `upload-${Date.now()}`;
         fileType = "application/octet-stream";
       }
 
       const key = `uploads/${user.userId}/${Date.now()}-${fileName}`;
+      const publicUrl = `${env.R2_PUBLIC_URL}/${key}`;
+
+      // If base64 data is provided, upload it directly to R2
+      if (fileData && typeof fileData === 'string' && fileData.includes('base64')) {
+        const binaryString = atob(fileData.split(',')[1]);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        await env.BUCKET.put(key, bytes, { httpMetadata: { contentType: fileType } });
+        return jsonResp({ success: true, url: publicUrl, publicUrl, key });
+      }
+
+      // Otherwise, return a presigned URL for the client to upload
       const signedUrl = await getS3PresignedUrl({
         bucket: env.R2_BUCKET_NAME,
         key,
@@ -400,7 +414,7 @@ const handleRequest = async (request, env) => {
         secretKey: env.R2_SECRET_ACCESS_KEY,
         contentType: fileType
       });
-      return jsonResp({ url: signedUrl, key, publicUrl: `${env.R2_PUBLIC_URL}/${key}` });
+      return jsonResp({ url: signedUrl, key, publicUrl });
     }
 
     return jsonResp({ error: "Route not found (" + path + ")" }, 404);

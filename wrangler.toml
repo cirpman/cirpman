@@ -9,6 +9,10 @@ binding = "DB"
 database_name = "cirpman-homes-db"
 database_id = "0ccb751e-870c-4431-a15c-51ac5853f4da"
 
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "cirpman-homes-files"
+
 [vars]
 R2_ACCOUNT_ID = "b504159e8022ea6268f9390704f90c2f"
 R2_BUCKET_NAME = "cirpman-homes-files"

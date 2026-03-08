@@ -6,8 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { MapPin, Clock } from 'lucide-react';
+
+const PhoneIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+);
+
+const MailIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+);
 import { toast } from "sonner";
+import { worker } from '@/lib/worker';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -20,23 +29,18 @@ const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email || !formData.message) {
       toast.error('Please fill in all required fields');
       return;
     }
 
     setLoading(true);
-    
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
 
+    try {
+      const response = await worker.post('/create-feedback', formData);
       if (!response.ok) throw new Error('Failed to send message');
-      
+
       toast.success('Thank you for your message! We will get back to you soon.');
       setFormData({ name: '', email: '', phone: '', message: '' });
     } catch (error: any) {
@@ -56,7 +60,7 @@ const Contact = () => {
   return (
     <div className="min-h-screen">
       <Navigation />
-      
+
       <div className="pt-20 bg-gradient-to-br from-brand-blue to-brand-blue/90 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
@@ -77,23 +81,23 @@ const Contact = () => {
             <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
             <div className="space-y-6">
               <div className="flex items-start space-x-4">
-                <Phone className="h-6 w-6 text-brand-gold mt-1" />
+                <PhoneIcon />
                 <div>
                   <h3 className="font-semibold">Phone</h3>
                   <p className="text-gray-600">+234 913 254 1977</p>
                   <p className="text-gray-600">+234 814 716 7575</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-4">
-                <Mail className="h-6 w-6 text-brand-gold mt-1" />
+                <MailIcon />
                 <div>
                   <h3 className="font-semibold">Email</h3>
                   <p className="text-gray-600">info@cirpmanhomesltd.com</p>
                   <p className="text-gray-600">@cirpmanhomesltd@gmail.com</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-4">
                 <MapPin className="h-6 w-6 text-brand-gold mt-1" />
                 <div>
@@ -117,7 +121,7 @@ const Contact = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-4">
                 <Clock className="h-6 w-6 text-brand-gold mt-1" />
                 <div>
@@ -148,7 +152,7 @@ const Contact = () => {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <Input
                     name="email"
@@ -159,7 +163,7 @@ const Contact = () => {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <Input
                     name="phone"
@@ -170,7 +174,7 @@ const Contact = () => {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <Textarea
                     name="message"
@@ -181,9 +185,9 @@ const Contact = () => {
                     required
                   />
                 </div>
-                
-                <Button 
-                  type="submit" 
+
+                <Button
+                  type="submit"
                   className="w-full bg-brand-gold hover:bg-brand-gold/90 text-brand-blue"
                   disabled={loading}
                 >

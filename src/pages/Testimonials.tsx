@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Star, Quote, ChevronLeft, ChevronRight, Search, Building } from 'lucide-react';
+import { worker } from '@/lib/worker';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-// Using text-based icons
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
@@ -42,10 +43,10 @@ const Testimonials = () => {
   const fetchTestimonials = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/testimonials');
-      if (!res.ok) throw new Error('Failed to fetch testimonials');
-      const data = await res.json();
-      setTestimonials(data || []);
+      const response = await worker.post('/get-testimonials', {});
+      if (!response.ok) throw new Error('Failed to fetch testimonials');
+      const data = await response.json();
+      setTestimonials(Array.isArray(data) ? data : []);
     } catch (error: any) {
       toast.error('Failed to fetch testimonials: ' + error.message);
     } finally {
@@ -54,27 +55,26 @@ const Testimonials = () => {
   };
 
   const filteredTestimonials = testimonials.filter(testimonial => {
-    const matchesSearch = 
+    const matchesSearch =
       testimonial.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       testimonial.testimonial_text.toLowerCase().includes(searchTerm.toLowerCase()) ||
       testimonial.client_company?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesRating = ratingFilter === 'all' || testimonial.rating === parseInt(ratingFilter);
-    const matchesFeatured = featuredFilter === 'all' || 
+    const matchesFeatured = featuredFilter === 'all' ||
       (featuredFilter === 'featured' && testimonial.featured) ||
       (featuredFilter === 'regular' && !testimonial.featured);
 
     return matchesSearch && matchesRating && matchesFeatured;
   });
 
-// Using generic icons - we'll render stars with emoji instead
-const renderStars = (rating: number) => {
+  // Using generic icons - we'll render stars with emoji instead
+  const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <span
         key={i}
-        className={`text-lg ${
-          i < rating ? 'text-yellow-400' : 'text-gray-300'
-        }`}
+        className={`text-lg ${i < rating ? 'text-yellow-400' : 'text-gray-300'
+          }`}
       >
         ★
       </span>
@@ -92,7 +92,7 @@ const renderStars = (rating: number) => {
   return (
     <div className="min-h-screen">
       <Navigation />
-      
+
       <div className="pt-20 bg-gradient-to-br from-brand-blue to-brand-blue/90 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
@@ -144,40 +144,39 @@ const renderStars = (rating: number) => {
         </div>
 
         {/* Testimonials Grid */}
-         {loading ? (
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {[...Array(6)].map((_, i) => (
-               <Card key={i}>
-                 <CardHeader>
-                   <div className="flex items-center space-x-3">
-                     <Skeleton className="h-12 w-12 rounded-full" />
-                     <div>
-                       <Skeleton className="h-4 w-24 mb-2" />
-                       <Skeleton className="h-3 w-32" />
-                     </div>
-                   </div>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="space-y-2">
-                     <Skeleton className="h-3 w-full" />
-                     <Skeleton className="h-3 w-3/4" />
-                     <Skeleton className="h-3 w-1/2" />
-                   </div>
-                 </CardContent>
-               </Card>
-             ))}
-           </div>
-         ) : filteredTestimonials.length === 0 ? (
-           <div className="text-center py-12">
-             <div className="text-gray-500 text-lg mb-4">No testimonials found</div>
-             <p className="text-gray-400">Try adjusting your search or filter criteria</p>
-           </div>
-         ) : (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <div className="flex items-center space-x-3">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div>
+                      <Skeleton className="h-4 w-24 mb-2" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filteredTestimonials.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-500 text-lg mb-4">No testimonials found</div>
+            <p className="text-gray-400">Try adjusting your search or filter criteria</p>
+          </div>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTestimonials.map((testimonial) => (
-              <Card key={testimonial.id} className={`group hover:shadow-lg transition-shadow ${
-                testimonial.featured ? 'ring-2 ring-brand-gold' : ''
-              }`}>
+              <Card key={testimonial.id} className={`group hover:shadow-lg transition-shadow ${testimonial.featured ? 'ring-2 ring-brand-gold' : ''
+                }`}>
                 <CardHeader>
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0">
@@ -283,7 +282,7 @@ const renderStars = (rating: number) => {
           </div>
         )}
       </div>
-      
+
       <Footer />
     </div>
   );

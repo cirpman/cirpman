@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
-import { Search, ChevronDown, ChevronRight, HelpCircle, Filter } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, CircleHelp, Filter } from 'lucide-react';
+import { worker } from '@/lib/worker';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
@@ -34,10 +35,10 @@ const FAQ = () => {
   const fetchFAQs = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/faq');
-      if (!response.ok) throw new Error('Failed to fetch FAQ');
+      const response = await worker.post('/get-faqs', {});
+      if (!response.ok) throw new Error('Failed to fetch FAQs');
       const data = await response.json();
-      const faqItems = data.faq || data || [];
+      const faqItems = Array.isArray(data) ? data : [];
       setFaqs(faqItems);
 
       // Extract unique categories
@@ -51,7 +52,7 @@ const FAQ = () => {
   };
 
   const filteredFAQs = faqs.filter(faq => {
-    const matchesSearch = 
+    const matchesSearch =
       faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
       faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || faq.category === selectedCategory;
@@ -89,7 +90,7 @@ const FAQ = () => {
   return (
     <div className="min-h-screen">
       <Navigation />
-      
+
       <div className="pt-20 bg-gradient-to-br from-brand-blue to-brand-blue/90 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
@@ -130,7 +131,7 @@ const FAQ = () => {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-600">
               {filteredFAQs.length} question{filteredFAQs.length !== 1 ? 's' : ''} found
@@ -165,7 +166,7 @@ const FAQ = () => {
           </div>
         ) : filteredFAQs.length === 0 ? (
           <div className="text-center py-12">
-            <HelpCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <CircleHelp className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <div className="text-gray-500 text-lg mb-4">No FAQ found</div>
             <p className="text-gray-400">Try adjusting your search or filter criteria</p>
           </div>
@@ -236,7 +237,7 @@ const FAQ = () => {
           </Card>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

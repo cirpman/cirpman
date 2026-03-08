@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Bed, Bath, Square, Search, Filter } from 'lucide-react';
 import { toast } from "sonner";
+import { worker } from '@/lib/worker';
 
 interface Property {
   id: string;
@@ -35,10 +36,10 @@ const Properties = () => {
 
   const fetchProperties = async () => {
     try {
-      const response = await fetch('/api/properties');
+      const response = await worker.post('/get-properties', {});
       if (!response.ok) throw new Error('Failed to fetch properties');
       const data = await response.json();
-      setProperties(data.properties || data || []);
+      setProperties(data || []);
     } catch (error: any) {
       toast.error('Failed to fetch properties: ' + error.message);
     } finally {
@@ -48,7 +49,7 @@ const Properties = () => {
 
   const filteredProperties = properties.filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (property.location && property.location.toLowerCase().includes(searchTerm.toLowerCase()));
+      (property.location && property.location.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || property.status.toLowerCase() === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -59,7 +60,7 @@ const Properties = () => {
       currency: 'NGN',
       minimumFractionDigits: 0,
     });
-    
+
     if (min === max) {
       return formatter.format(min);
     }
@@ -82,7 +83,7 @@ const Properties = () => {
   return (
     <div className="min-h-screen">
       <Navigation />
-      
+
       {/* Hero Section */}
       <div className="pt-20 bg-gradient-to-br from-brand-blue to-brand-blue/90 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -164,7 +165,7 @@ const Properties = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <CardHeader>
                   <CardTitle className="text-xl">{property.title}</CardTitle>
                   <CardDescription className="flex items-center text-gray-600">
@@ -172,22 +173,22 @@ const Properties = () => {
                     {property.location || 'Location TBD'}
                   </CardDescription>
                 </CardHeader>
-                
+
                 <CardContent>
                   <p className="text-gray-600 mb-4 line-clamp-2">{property.description}</p>
-                  
+
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <span className="flex items-center">
                         <Square className="h-4 w-4 mr-1" />
-                        {property.size_min === property.size_max 
-                          ? `${property.size_min} sqm` 
+                        {property.size_min === property.size_max
+                          ? `${property.size_min} sqm`
                           : `${property.size_min}-${property.size_max} sqm`
                         }
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-2xl font-bold text-brand-blue">
@@ -207,8 +208,8 @@ const Properties = () => {
             <Square className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-medium text-gray-900 mb-2">No Properties Found</h3>
             <p className="text-gray-500">
-              {searchTerm || statusFilter !== 'all' 
-                ? 'Try adjusting your search or filter criteria.' 
+              {searchTerm || statusFilter !== 'all'
+                ? 'Try adjusting your search or filter criteria.'
                 : 'Properties will be listed here soon.'
               }
             </p>
