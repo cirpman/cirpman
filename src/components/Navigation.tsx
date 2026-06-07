@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Phone, ChevronDown, User, LogOut } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { resolveAssetPath } from '@/lib/assets';
 import { useAuth } from '../hooks/useAuth';
 
 const Navigation = () => {
@@ -50,9 +51,9 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
-            <img 
-              src="/lovable-uploads/Cripman homes ltd. Logo.png" 
-              alt="Cirpman Homes Ltd Logo" 
+            <img
+              src={resolveAssetPath('/lovable-uploads/Cripman homes ltd. Logo.png')}
+              alt="Cirpman Homes Ltd Logo"
               className="h-12 w-auto"
             />
             <div className="hidden sm:block">

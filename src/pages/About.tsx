@@ -1,6 +1,7 @@
 
 import React from 'react';
 import Navigation from '@/components/Navigation';
+import { resolveAssetPath } from '@/lib/assets';
 import { Card, CardContent } from "@/components/ui/card";
 import { Users } from 'lucide-react';
 
@@ -103,7 +104,7 @@ const About = () => {
                     <div className="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full">
                       {member.image_url ? (
                         <img
-                          src={member.image_url}
+                          src={resolveAssetPath(member.image_url)}
                           alt={member.name}
                           className="w-full h-full object-cover"
                         />

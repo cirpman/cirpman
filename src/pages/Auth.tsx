@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { useAuth } from '@/hooks/useAuth';
+import { resolveAssetPath } from '@/lib/assets';
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -56,9 +57,9 @@ const Auth = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <img 
-            src="/lovable-uploads/Cripman homes ltd. Logo.png" 
-            alt="Cirpman Homes Ltd Logo" 
+            <img 
+              src={resolveAssetPath('/lovable-uploads/Cripman homes ltd. Logo.png')}
+              alt="Cirpman Homes Ltd Logo"
             className="h-16 w-auto"
           />
         </div>
