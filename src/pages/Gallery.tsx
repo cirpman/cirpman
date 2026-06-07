@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
+import { resolveAssetPath } from '@/lib/assets';
 import { Card, CardContent } from "@/components/ui/card";
 import { Images } from 'lucide-react';
 import { toast } from "sonner";
@@ -99,7 +100,7 @@ const Gallery = () => {
                 <div className="aspect-video bg-gray-200 relative">
                   {item.image_url ? (
                     <img
-                      src={item.image_url}
+                      src={resolveAssetPath(item.image_url)}
                       alt={item.title}
                       className="w-full h-full object-cover"
                     />

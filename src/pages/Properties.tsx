@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
+import { resolveAssetPath } from '@/lib/assets';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -150,7 +151,7 @@ const Properties = () => {
                 <div className="aspect-video bg-gray-200 relative">
                   {property.images && property.images.length > 0 ? (
                     <img
-                      src={property.images[0]}
+                      src={resolveAssetPath(property.images[0])}
                       alt={property.title}
                       className="w-full h-full object-cover"
                     />
