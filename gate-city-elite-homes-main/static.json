@@ -1,0 +1,46 @@
+{
+  "root": "dist",
+  "routes": [
+    {
+      "src": "/dashboard/(.*)",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/auth",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/properties",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/progress",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/gallery",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/about",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/contact",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/book-site-visit",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": {
+    "/*": {
+      "Cache-Control": "no-cache, no-store, must-revalidate"
+    }
+  }
+}
