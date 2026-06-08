@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Clock } from 'lucide-react';
 import { toast } from "sonner";
 import { worker } from '@/lib/worker';
+import { resolveAssetPath } from '@/lib/assets';
 
 interface ProgressItem {
   id: string;
@@ -98,7 +99,7 @@ const Progress = () => {
                     <p className="text-gray-600 mb-4">{item.description}</p>
                     {item.image_url && (
                       <img
-                        src={item.image_url}
+                        src={resolveAssetPath(item.image_url)}
                         alt={item.title}
                         className="w-full h-64 object-cover rounded-lg"
                       />

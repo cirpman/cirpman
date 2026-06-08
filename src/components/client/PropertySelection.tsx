@@ -10,6 +10,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { getRecaptchaToken } from '@/lib/recaptcha';
+import { resolveAssetPath } from '@/lib/assets';
 
 interface Property {
   id: string;
@@ -173,7 +174,7 @@ const PropertySelection = () => {
             <div className="relative h-48 bg-gradient-to-br from-brand-blue/10 to-brand-gold/10">
               {property.images && property.images.length > 0 ? (
                 <img
-                  src={property.images[0]}
+                  src={resolveAssetPath(property.images[0])}
                   alt={property.title}
                   className="w-full h-full object-cover"
                 />
@@ -280,7 +281,7 @@ const PropertySelection = () => {
                 <CarouselContent>
                   {viewingProperty.images && viewingProperty.images.length > 0 && viewingProperty.images.map((img, idx) => (
                     <CarouselItem key={img + idx}>
-                      <img src={img} alt={`Property image ${idx + 1}`} className="w-full h-64 object-cover rounded" />
+                      <img src={resolveAssetPath(img)} alt={`Property image ${idx + 1}`} className="w-full h-64 object-cover rounded" />
                     </CarouselItem>
                   ))}
                   {viewingProperty.videos && viewingProperty.videos.length > 0 && viewingProperty.videos.map((vid, idx) => (

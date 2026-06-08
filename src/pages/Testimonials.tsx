@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { resolveAssetPath } from '@/lib/assets';
 
 interface Testimonial {
   id: string;
@@ -182,7 +183,7 @@ const Testimonials = () => {
                     <div className="flex-shrink-0">
                       {testimonial.client_photo_url ? (
                         <img
-                          src={testimonial.client_photo_url}
+                          src={resolveAssetPath(testimonial.client_photo_url)}
                           alt={testimonial.client_name}
                           className="h-12 w-12 rounded-full object-cover"
                         />

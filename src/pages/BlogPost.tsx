@@ -9,6 +9,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import { worker } from '@/lib/worker';
+import { resolveAssetPath } from '@/lib/assets';
 
 interface BlogPost {
   id: string;
@@ -255,7 +256,7 @@ const BlogPost = () => {
           {post.featured_image_url && (
             <div className="mb-8">
               <img
-                src={post.featured_image_url}
+                src={resolveAssetPath(post.featured_image_url)}
                 alt={post.title}
                 className="w-full h-96 object-cover rounded-lg"
               />
@@ -281,7 +282,7 @@ const BlogPost = () => {
                   {relatedPost.featured_image_url && (
                     <div className="relative overflow-hidden rounded-t-lg">
                       <img
-                        src={relatedPost.featured_image_url}
+                        src={resolveAssetPath(relatedPost.featured_image_url)}
                         alt={relatedPost.title}
                         className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
                       />
