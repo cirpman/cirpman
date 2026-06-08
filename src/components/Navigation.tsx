@@ -42,7 +42,7 @@ const Navigation = () => {
   };
 
   const getDashboardPath = () => {
-    return profile?.role === 'admin' ? '/admin' : '/dashboard/client';
+    return profile?.role === 'admin' ? '/dashboard/admin' : '/dashboard/client';
   };
 
   return (

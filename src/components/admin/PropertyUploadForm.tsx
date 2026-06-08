@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Upload, Plus, X } from 'lucide-react';
 import { worker } from '@/lib/worker';
+import { resolveAssetPath } from '@/lib/assets';
 
 interface PropertyUploadFormProps {
   onSuccess?: () => void;
@@ -35,6 +36,7 @@ const PropertyUploadForm: React.FC<PropertyUploadFormProps> = ({ onSuccess, onCa
   const [images, setImages] = useState<File[]>([]);
   const [videos, setVideos] = useState<File[]>([]);
   const [featuredImageFile, setFeaturedImageFile] = useState<File | null>(null);
+  const [featuredPreview, setFeaturedPreview] = useState<string | null>(property?.featured_image ? resolveAssetPath(property.featured_image) : null);
   const [installmentConfig, setInstallmentConfig] = useState({
     duration: '12',
     minDepositPercent: '',
@@ -65,8 +67,31 @@ const PropertyUploadForm: React.FC<PropertyUploadFormProps> = ({ onSuccess, onCa
         installment_available: property.installment_available || false
       });
       // No file objects for images/videos, so skip for now
+      // If editing an existing property, show featured image preview
+      if (property.featured_image) {
+        setFeaturedPreview(resolveAssetPath(property.featured_image));
+      }
     }
   }, [property]);
+
+  // Generate object URLs for previews for additional images
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  React.useEffect(() => {
+    // revoke existing urls first
+    imagePreviews.forEach(u => URL.revokeObjectURL(u));
+    const urls = images.map(img => URL.createObjectURL(img));
+    setImagePreviews(urls);
+    return () => urls.forEach(u => URL.revokeObjectURL(u));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images]);
+
+  // Update featured preview when a new file is selected
+  React.useEffect(() => {
+    if (!featuredImageFile) return;
+    const url = URL.createObjectURL(featuredImageFile);
+    setFeaturedPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [featuredImageFile]);
 
   React.useEffect(() => {
     if (property && property.installment_config) {
@@ -523,12 +548,18 @@ const PropertyUploadForm: React.FC<PropertyUploadFormProps> = ({ onSuccess, onCa
               />
               <label htmlFor="featured-image" className="cursor-pointer">
                 <div className="text-center">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                  <div className="mt-2">
-                    <span className="text-sm font-medium text-gray-900">
-                      {featuredImageFile ? featuredImageFile.name : 'Upload featured image'}
-                    </span>
-                  </div>
+                  {featuredPreview ? (
+                    <img src={featuredPreview} alt="Featured preview" className="mx-auto h-40 w-full object-cover rounded" />
+                  ) : (
+                    <>
+                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="mt-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          {featuredImageFile ? featuredImageFile.name : 'Upload featured image'}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </label>
             </div>
@@ -559,10 +590,12 @@ const PropertyUploadForm: React.FC<PropertyUploadFormProps> = ({ onSuccess, onCa
             {images.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
                 {images.map((image, index) => (
-                  <div key={index} className="relative">
-                    <div className="bg-gray-100 rounded p-2 text-xs truncate">
-                      {image.name}
-                    </div>
+                  <div key={index} className="relative bg-gray-100 rounded overflow-hidden h-32">
+                    {imagePreviews[index] ? (
+                      <img src={imagePreviews[index]} alt={image.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="p-2 text-xs truncate">{image.name}</div>
+                    )}
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
