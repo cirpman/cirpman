@@ -1,17 +1,14 @@
 export function resolveAssetPath(path?: string) {
   if (!path) return path || '';
-  // Vite env variable for R2 public URL (set in Vercel or locally as VITE_R2_PUBLIC_URL)
-  const R2 = (import.meta as any).env?.VITE_R2_PUBLIC_URL || '';
 
-  // If path points to the old lovable-uploads location, prefer the R2 public URL when available
+  // Static assets (logo, team photos) from /lovable-uploads/ are ALWAYS served from public/
+  // They never go to R2.
   if (path.startsWith('/lovable-uploads') || path.startsWith('lovable-uploads')) {
-    if (R2) {
-      // ensure no duplicate slashes
-      return `${R2.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
-    }
-    // fallback to the original path (will work if files are present in public/)
-    return path;
+    // Always return as-is to load from public/
+    return path.startsWith('/') ? path : `/${path}`;
   }
 
+  // Admin-uploaded images already have full R2 URLs from the worker endpoint.
+  // Pass them through as-is (e.g., https://cirpman-homes-files.b504159e8022ea6268f9390704f90c2f.r2.cloudflarestorage.com/uploads/...)
   return path;
 }

@@ -89,6 +89,15 @@ const handleRequest = async (request, env) => {
   };
 
   try {
+    // Helper: allow only absolute R2/HTTP URLs or the static lovable-uploads path
+    const isAllowedAssetUrl = (u) => {
+      if (!u || typeof u !== 'string') return false;
+      if (u.startsWith('data:')) return false; // disallow data URIs in DB
+      if (u.startsWith('/') && (u.includes('/lovable-uploads') || u.includes('lovable-uploads'))) return true; // allow static assets
+      if (u.startsWith('http://') || u.startsWith('https://')) return true; // allow absolute URLs (R2 or external)
+      return false;
+    };
+
     // --- Auth Endpoints ---
     if (path === "/signup" && method === "POST") {
       const { email, password, fullName, phone } = await request.json();
@@ -131,6 +140,20 @@ const handleRequest = async (request, env) => {
     if (path === "/create-property" && method === "POST") {
       if (!await adminOnly()) return jsonResp({ error: "Unauthorized" }, 401);
       const data = await request.json();
+      // Validate asset URLs
+      if (data.featured_image && !isAllowedAssetUrl(data.featured_image)) return jsonResp({ error: 'Invalid featured_image value' }, 400);
+      try {
+        const imgs = data.images || [];
+        for (const img of imgs) {
+          if (img && !isAllowedAssetUrl(img)) return jsonResp({ error: 'Invalid image value in images array' }, 400);
+        }
+      } catch (e) {}
+      try {
+        const vids = data.videos || [];
+        for (const v of vids) {
+          if (v && !isAllowedAssetUrl(v)) return jsonResp({ error: 'Invalid video value in videos array' }, 400);
+        }
+      } catch (e) {}
       const res = await env.DB.prepare("INSERT INTO properties (title, description, location, google_maps, size_min, size_max, price_min, price_max, status, progress, featured_image, images, videos, installment_available, installment_config) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(
         data.title, data.description, data.location, data.google_maps, data.size_min, data.size_max, data.price_min, data.price_max, data.status, data.progress, data.featured_image, JSON.stringify(data.images || []), JSON.stringify(data.videos || []), data.installment_available ? 1 : 0, JSON.stringify(data.installment_config || {})
       ).run();
@@ -140,6 +163,10 @@ const handleRequest = async (request, env) => {
     if (path === "/update-property" && method === "POST") {
       if (!await adminOnly()) return jsonResp({ error: "Unauthorized" }, 401);
       const data = await request.json();
+      // Validate asset URLs on update
+      if (data.featured_image && !isAllowedAssetUrl(data.featured_image)) return jsonResp({ error: 'Invalid featured_image value' }, 400);
+      try { for (const img of (data.images || [])) { if (img && !isAllowedAssetUrl(img)) return jsonResp({ error: 'Invalid image value in images array' }, 400); } } catch (e) {}
+      try { for (const v of (data.videos || [])) { if (v && !isAllowedAssetUrl(v)) return jsonResp({ error: 'Invalid video value in videos array' }, 400); } } catch (e) {}
       await env.DB.prepare("UPDATE properties SET title=?, description=?, location=?, google_maps=?, size_min=?, size_max=?, price_min=?, price_max=?, status=?, progress=?, featured_image=?, images=?, videos=?, installment_available=?, installment_config=? WHERE id=?").bind(
         data.title, data.description, data.location, data.google_maps, data.size_min, data.size_max, data.price_min, data.price_max, data.status, data.progress, data.featured_image, JSON.stringify(data.images || []), JSON.stringify(data.videos || []), data.installment_available ? 1 : 0, JSON.stringify(data.installment_config || {}), data.id
       ).run();
@@ -368,7 +395,10 @@ const handleRequest = async (request, env) => {
     if (path === "/create-gallery-items" && method === "POST") {
       if (!await adminOnly()) return jsonResp({ error: "Unauthorized" }, 401);
       const { galleryItems } = await request.json();
+      // Validate gallery item asset URLs
       for (const item of galleryItems) {
+        if (item.image_url && !isAllowedAssetUrl(item.image_url)) return jsonResp({ error: 'Invalid image_url in gallery item' }, 400);
+        if (item.video_url && !isAllowedAssetUrl(item.video_url)) return jsonResp({ error: 'Invalid video_url in gallery item' }, 400);
         await env.DB.prepare("INSERT INTO gallery (title, description, category, image_url, video_url) VALUES (?, ?, ?, ?, ?)").bind(
           item.title, item.description, item.category, item.image_url, item.video_url
         ).run();
@@ -463,18 +493,63 @@ const handleRequest = async (request, env) => {
         fileType = "application/octet-stream";
       }
 
+      // Sanitize filename to prevent data URIs or malicious/oversized names
+      try {
+        fileName = String(fileName || "");
+        const looksLikeDataUri = fileName.startsWith('data:') || fileName.includes('base64,');
+        const invalidChars = /[\/\\<>:\"|?*\x00-\x1F]/;
+        if (looksLikeDataUri || invalidChars.test(fileName) || fileName.length > 200) {
+          // derive extension from fileType when possible
+          let ext = '';
+          if (fileType && fileType.includes('/')) {
+            const subtype = fileType.split('/')[1].split(';')[0];
+            if (subtype && subtype.length < 10) ext = `.${subtype}`;
+          }
+          fileName = `upload-${Date.now()}${ext}`;
+        } else {
+          // strip any path components and unsafe chars
+          fileName = fileName.split('/').pop().split('\\').pop();
+          fileName = fileName.replace(/\s+/g, '_').replace(/[^\w.\-@]/g, '');
+          if (!fileName) fileName = `upload-${Date.now()}`;
+        }
+      } catch (e) {
+        fileName = `upload-${Date.now()}`;
+      }
+
       const key = `uploads/${user.userId}/${Date.now()}-${fileName}`;
       const publicUrl = `${env.R2_PUBLIC_URL}/${key}`;
 
-      // If base64 data is provided, upload it directly to R2
+      // If base64 data is provided, upload it directly to R2 with deduplication
       if (fileData && typeof fileData === 'string' && fileData.includes('base64')) {
         const binaryString = atob(fileData.split(',')[1]);
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i);
         }
-        await env.BUCKET.put(key, bytes, { httpMetadata: { contentType: fileType } });
-        return jsonResp({ success: true, url: publicUrl, publicUrl, key });
+
+        // Compute SHA-256 hash for content-based deduplication
+        const hashBuf = await crypto.subtle.digest('SHA-256', bytes);
+        const hashHex = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+        // derive extension from content type
+        let ext = '';
+        if (fileType && fileType.includes('/')) {
+          const subtype = fileType.split('/')[1].split(';')[0];
+          if (subtype && subtype.length < 10) ext = `.${subtype}`;
+        }
+        const dedupKey = `uploads/${user.userId}/${hashHex}${ext}`;
+        // If object exists, skip re-upload
+        let exists = false;
+        try {
+          const obj = await env.BUCKET.get(dedupKey);
+          if (obj) exists = true;
+        } catch (e) { /* ignore */ }
+
+        if (!exists) {
+          await env.BUCKET.put(dedupKey, bytes, { httpMetadata: { contentType: fileType } });
+        }
+
+        const finalPublicUrl = `${env.R2_PUBLIC_URL}/${dedupKey}`;
+        return jsonResp({ success: true, url: finalPublicUrl, publicUrl: finalPublicUrl, key: dedupKey });
       }
 
       // Deprecated: returning presigned client-side PUT URLs causes CORS
@@ -482,6 +557,33 @@ const handleRequest = async (request, env) => {
       // Prefer the server-side `/upload` flow (base64 payload) which uses
       // the `env.BUCKET.put(...)` binding and avoids cross-origin PUTs.
       return jsonResp({ error: 'Presigned uploads are deprecated. Use /upload with base64 payload.' }, 400);
+    }
+
+    // --- Debug: find DB records with data-URI image/video fields ---
+    if (path === "/debug/find-data-uris" && method === "POST") {
+      if (!await adminOnly()) return jsonResp({ error: "Unauthorized" }, 401);
+      const results = [];
+      const tryQuery = async (sql, tableName, fieldAliases) => {
+        try {
+          const res = await env.DB.prepare(sql).all();
+          const rows = res.results || [];
+          for (const r of rows) {
+            results.push({ table: tableName, row: r });
+          }
+        } catch (e) {
+          // ignore missing tables or other errors per-table
+        }
+      };
+
+      // Single-field checks
+      await tryQuery("SELECT id, image_url, video_url FROM gallery WHERE (image_url LIKE 'data:%' OR video_url LIKE 'data:%')", 'gallery');
+      await tryQuery("SELECT id, client_photo_url FROM testimonials WHERE client_photo_url LIKE 'data:%'", 'testimonials');
+      await tryQuery("SELECT id, featured_image AS featured_image_url FROM properties WHERE featured_image LIKE 'data:%'", 'properties_featured');
+      await tryQuery("SELECT id, images, videos FROM properties WHERE images LIKE '%\"data:%' OR videos LIKE '%\"data:%'", 'properties_arrays');
+      await tryQuery("SELECT id, image_url, video_url FROM progress_timeline WHERE (image_url LIKE 'data:%' OR video_url LIKE 'data:%')", 'progress_timeline');
+      await tryQuery("SELECT id, featured_image_url FROM blog WHERE featured_image_url LIKE 'data:%'", 'blog');
+
+      return jsonResp({ success: true, results });
     }
 
     return jsonResp({ error: "Route not found (" + path + ")" }, 404);

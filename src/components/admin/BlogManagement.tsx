@@ -131,7 +131,7 @@ const BlogManagement = () => {
         reader.onload = async () => {
             const base64 = reader.result as string;
             try {
-                const response = await worker.post("/upload", { file: base64, type: file.type });
+                const response = await worker.post("/upload", { file: base64, type: file.type, fileName: file.name });
                 if (!response.ok) {
                   throw new Error('Failed to upload file');
                 }
