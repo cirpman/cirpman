@@ -135,7 +135,7 @@ const handleRequest = async (request, env) => {
         data.title, data.description, data.location, data.google_maps, data.size_min, data.size_max, data.price_min, data.price_max, data.status, data.progress, data.featured_image, JSON.stringify(data.images || []), JSON.stringify(data.videos || []), data.installment_available ? 1 : 0, JSON.stringify(data.installment_config || {})
       ).run();
       return jsonResp({ success: true, id: res.meta.last_row_id });
-    }
+          const publicUrl = (env.R2_PUBLIC_URL && `${env.R2_PUBLIC_URL}/${key}`) || (env.R2_BUCKET_NAME && env.R2_ACCOUNT_ID && `https://${env.R2_BUCKET_NAME}.${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${key}`) || `/${key}`;
 
     if (path === "/update-property" && method === "POST") {
       if (!await adminOnly()) return jsonResp({ error: "Unauthorized" }, 401);

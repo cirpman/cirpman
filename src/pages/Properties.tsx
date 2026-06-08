@@ -3,6 +3,7 @@ import Navigation from '@/components/Navigation';
 import { resolveAssetPath } from '@/lib/assets';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
 import { Input } from "@/components/ui/input";
 import { MapPin, Bed, Bath, Square, Search, Filter } from 'lucide-react';
 import { toast } from "sonner";
@@ -196,9 +197,11 @@ const Properties = () => {
                         {formatPrice(property.price_min, property.price_max)}
                       </p>
                     </div>
-                    <Button className="bg-brand-gold hover:bg-brand-gold/90 text-brand-blue">
-                      View Details
-                    </Button>
+                    <Link to={`/properties/${property.id}`}>
+                      <Button className="bg-brand-gold hover:bg-brand-gold/90 text-brand-blue">
+                        View Details
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>

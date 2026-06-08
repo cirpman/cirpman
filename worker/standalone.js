@@ -143,7 +143,7 @@ const handleRequest = async (request, env) => {
                 secretKey: env.R2_SECRET_ACCESS_KEY,
                 contentType: fileType
             });
-            return jsonResp({ url: signedUrl, key, publicUrl: `${env.R2_PUBLIC_URL}/${key}` });
+            return jsonResp({ url: signedUrl, key, publicUrl: (env.R2_PUBLIC_URL && `${env.R2_PUBLIC_URL}/${key}`) || (env.R2_BUCKET_NAME && env.R2_ACCOUNT_ID && `https://${env.R2_BUCKET_NAME}.${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${key}`) || `/${key}` });
         }
 
         if (path === "/admin/stats" && method === "POST") {

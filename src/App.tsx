@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
 import Properties from "./pages/Properties";
+import PropertyDetails from './pages/PropertyDetails';
 import Progress from "./pages/Progress";
 import Gallery from "./pages/Gallery";
 import About from "./pages/About";
@@ -38,6 +39,7 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/properties" element={<Properties />} />
+            <Route path="/properties/:id" element={<PropertyDetails />} />
             <Route path="/progress" element={<Progress />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/about" element={<About />} />
