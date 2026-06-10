@@ -45,8 +45,8 @@ const PropertyDetails = () => {
       <div className="max-w-4xl mx-auto py-20 px-4">
         <Card>
           <div className="aspect-video bg-gray-100">
-            {property.images && property.images.length > 0 ? (
-              <img src={resolveAssetPath(property.images[0])} alt={property.title} className="w-full h-full object-cover" />
+            {property.featured_image || (property.images && property.images.length > 0) ? (
+              <img src={resolveAssetPath(property.featured_image || property.images[0])} alt={property.title} className="w-full h-full object-cover" />
             ) : (
               <div className="flex items-center justify-center h-full">
                 <Building className="h-16 w-16 text-gray-400" />

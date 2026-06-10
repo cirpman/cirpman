@@ -20,6 +20,7 @@ interface Property {
   price_max: number;
   status: string;
   progress: string;
+  featured_image: string | null;
   images: string[];
   videos: string[];
   created_at: string;
@@ -150,9 +151,9 @@ const Properties = () => {
             {filteredProperties.map((property) => (
               <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="aspect-video bg-gray-200 relative">
-                  {property.images && property.images.length > 0 ? (
+                  {property.featured_image || (property.images && property.images.length > 0) ? (
                     <img
-                      src={resolveAssetPath(property.images[0])}
+                      src={resolveAssetPath(property.featured_image || property.images[0])}
                       alt={property.title}
                       className="w-full h-full object-cover"
                     />
